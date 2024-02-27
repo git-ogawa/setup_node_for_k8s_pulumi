@@ -49,7 +49,6 @@ class Node:
     def ec2_instance(self, ami: str, instance_type: str) -> ec2.Instance:
         user_data = f"""#!/bin/bash
         hostnamectl set-hostname {self.name}
-        touch /home/ubuntu/test.txt
         """
         _instance = ec2.Instance(
             self.name,

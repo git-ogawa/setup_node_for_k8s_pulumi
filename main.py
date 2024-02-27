@@ -50,7 +50,7 @@ def run():
             )
 
 
-@dataclass()
+@dataclass
 class Stack:
     stack_name: str
     project_name: str
