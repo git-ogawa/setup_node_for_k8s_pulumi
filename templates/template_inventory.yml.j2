@@ -1,0 +1,85 @@
+---
+all:
+  vars:
+    ec2_cluster: false
+    kubernetes_version: latest
+    cni_type: flannel
+    pod_network_cidr: "10.244.0.0/16"
+    taint_control_plane_node: false
+    openebs_install: false
+    longhorn_install: false
+    kubevious_install: false
+    argocd_install: false
+    tekton_install: false
+    gitea_install: false
+    harbor_install: false
+    kube_prometheus_install: false
+    octant_install: false
+    openfaas_install: false
+    linkerd_install: false
+    cert_manager_install: false
+    jaeger_install: false
+    velero_install: false
+    awx_install: false
+    st2_install: false
+    kubevirt_install: false
+    ha_cluster:
+      {% if load_balancer is defined %}
+      enabled: true
+      {% else %}
+      enabled: false
+      {% endif %}
+    github_api_token_enabled: false
+    github_api_token: ""
+  children:
+    cluster:
+      vars:
+        ansible_ssh_port: 22
+        ansible_ssh_private_key_file: ~/.ssh/{{ key_name }}
+      children:
+        control_plane:
+        worker:
+    control_plane:
+      hosts:
+        {% for node in _control_plane %}
+        {{ node.hostname }}:
+          ansible_host: {{ node.public_ip }}
+          internal_ipv4: {{ node.private_ip }}
+          {% if "ubuntu" in node.os %}
+          ansible_user: ubuntu
+          {% elif "rockylinux" in node.os %}
+          ansible_user: rocky
+          {% endif %}
+        {% endfor %}
+    worker:
+      hosts:
+        {% for node in _workers %}
+        {{ node.hostname }}:
+          ansible_host: {{ node.public_ip }}
+          internal_ipv4: {{ node.private_ip }}
+          {% if "ubuntu" in node.os %}
+          ansible_user: ubuntu
+          {% elif "rockylinux" in node.os %}
+          ansible_user: rocky
+          {% endif %}
+        {% endfor %}
+    {% if load_balancer is defined %}
+    load_balancer:
+      hosts:
+        {{ load_balancer.hostname }}:
+          {% if load_balancer.type == "node" %}
+          ansible_host: {{ load_balancer.public_ip }}
+          internal_ipv4: {{ load_balancer.private_ip }}
+            {% if "ubuntu" in load_balancer.os %}
+          ansible_user: ubuntu
+            {% elif "rockylinux" in load_balancer.os %}
+          ansible_user: rocky
+            {% endif %}
+          ansible_ssh_port: 22
+          ansible_ssh_private_key_file: ~/.ssh/{{ key_name }}
+          dns_name: {{ load_balancer.hostname }}
+          {% elif load_balancer.type == "elb" %}
+          ansible_host: ""
+          dns_name: {{ load_balancer.dns_name }}
+          {% endif %}
+    {% endif %}

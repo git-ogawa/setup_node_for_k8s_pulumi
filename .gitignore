@@ -1,0 +1,5 @@
+*.pyc
+venv/
+Pulumi*
+template_inventory.yml
+inventory.yml

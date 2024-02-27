@@ -1,0 +1,13 @@
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Run pulumi up
+      ansible.builtin.command: >
+        python main.py
+        -s {{ stack_name }}
+        -p {{ project_name }}
+        -r {{ region }}
+        -a up
+      register: result
+      failed_when: result.rc != 0
